@@ -1,18 +1,20 @@
-
 # Importing all necessary libraries
 import cv2
 import os
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
 
 class GrayScale:
     def __init__(self, videopath):
         # Read the video from specified path
         self.video = cv2.VideoCapture(videopath)
         ret, frame = self.video.read()
-
         self.height, self.width, self.nchannels = frame.shape
         fps = 25
         self.fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-        self.out = cv2.VideoWriter('grayscale_output.avi', self.fourcc, fps, (self.width, self.height), 0)
+        self.out = cv2.VideoWriter('output.avi', self.fourcc, fps, (self.width, self.height), 0)
         try:
             # creating a folder named data
             if not os.path.exists('data'):
