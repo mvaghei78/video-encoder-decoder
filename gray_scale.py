@@ -14,7 +14,7 @@ class GrayScale:
         self.height, self.width, self.nchannels = frame.shape
         fps = 25
         self.fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-        self.out = cv2.VideoWriter('output.avi', self.fourcc, fps, (self.width, self.height), 0)
+        self.out = cv2.VideoWriter('grayscale_output.avi', self.fourcc, fps, (self.width, self.height), 0)
         try:
             # creating a folder named data
             if not os.path.exists('data'):
