@@ -32,8 +32,8 @@ class Encoder:
         for row in range(array.shape[0]):
             for column in range(array.shape[1]):
                 int_trans = int(array[row][column])
-                #if number is negative -> 1.positive it 2.shift it 3.negative it
-                if (int_trans < 0):
+                # if number is negative -> 1.positive it 2.shift it 3.negative it
+                if ( int_trans < 0 ):
                     int_trans = abs(int_trans)
                     int_trans = int_trans >> quantize_coeff
                     array[row][column] = int_trans * -1
@@ -67,27 +67,25 @@ class Encoder:
         frame_total_size = frame_width * frame_height
         zigzaged_frame = np.zeros((int(frame_total_size / (block_size * block_size)), block_size * block_size),
                                   dtype=float)
-        #how many 60*60 blocks in rows and columns
+        # how many 60*60 blocks in rows and columns
         block_in_column = int(frame_width / block_size)
         block_in_row = int(frame_height / block_size)
         index = 0
         for row in range(block_in_row):
             for column in range(block_in_column):
-                #get each 60*60 block
+                # get each 60*60 block
                 slice_frame = frame[row * block_size:(row + 1) * block_size,
                               column * block_size:(column + 1) * block_size]
-                #zigzag on 60*60 slice_frame
+                # zigzag on 60*60 slice_frame
                 zigzaged_frame[index] = self.zigzag_60_60(slice_frame, 60)
-                # print(slice_frame[0:4,0:4])
                 index += 1
-        # print(zigzaged_frame.shape)
+
         return zigzaged_frame
 
     def runLengthScan(self, frame):
-
         frame = frame.flatten()
         frame = frame.astype(int)
-        array = numpy.array([],dtype='int32')
+        array = numpy.array([], dtype='int32')
         i = 0
         count = 0
         while i != frame.size:
@@ -96,24 +94,25 @@ class Encoder:
             else:
                 array = np.append(array, [count, frame[i]])
                 count = 0
-            # if i == (frame.size-1) and frame[i] == 0:
-            #     array = np.append(array, [count, 0])
-
             i += 1
+        # if last element is zero then put number of zeros in array
+        if frame[i-1] == 0:
+            array = np.append(array, [count-1, 0])  # count-1 is number of zeros before zero
+
         array = array.reshape(int(array.size/2),2)
         return array
 
     def encode(self):
-        B = 8  # blocksize
+        B = 8  # block size
         currentframe = 0
         while (True):
             # reading from frame
             ret, frame = self.video.read()
             if ret:
-                B = 8  # blocksize
+                B = 8  # block size
                 img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                 array = np.array(img1.shape[:2])
-                h,w=array/ B * B
+                h, w = array / B * B
                 h = int(h)
                 w = int(w)
                 blocksV = int(h / B)
@@ -126,16 +125,16 @@ class Encoder:
                     for col in range(blocksH):
                         Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = cv2.dct(vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
 
-                #quantize numbers with shift 6 bit to right
+                # quantize numbers with shift 6 bit to right
                 Trans = self.quantization(Trans,6)
-                #zigzag on each 60*60 block
+                # zigzag on each 60*60 block
                 Trans = self.zigzagScan(Trans, 60)
-                #run-length all over frame
+                # run-length all over frame
                 Trans = self.runLengthScan(Trans)
                 # output of run-length is 2d numpy array that tell how many zeros are before
-                #non-zero numbers
+                # non-zero numbers
                 Trans = Trans.flatten()
-                #append width height and number of frame to last of array
+                # append width height and number of frame to last of array
                 Trans = numpy.append(Trans,[w,h,currentframe])
                 Trans = Trans.astype('int32')
                 encoded_file = open("./coded_frames/encoded_video"+str(currentframe)+".txt", "w+")
