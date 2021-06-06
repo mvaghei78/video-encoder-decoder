@@ -29,7 +29,6 @@ class Encoder:
         cv2.destroyAllWindows()
 
     def quantization(self, array, quantize_coeff=4):
-        # اول باید quantize بشه
         for row in range(array.shape[0]):
             for column in range(array.shape[1]):
                 int_trans = int(array[row][column])
@@ -62,7 +61,7 @@ class Encoder:
         return M
 
     def zigzagScan(self, frame, block_size=60):
-        # بعد از quantize باید zigzag اسکن بشه
+
         frame_width = frame.shape[1]
         frame_height = frame.shape[0]
         frame_total_size = frame_width * frame_height
@@ -85,14 +84,14 @@ class Encoder:
         return zigzaged_frame
 
     def runLengthScan(self, frame):
-        # بعد از zizzag اسکن نوبت run length scan هست
+
         frame = frame.flatten()
         frame = frame.astype(int)
         array = numpy.array([],dtype='int32')
         i = 0
         count = 0
         while i != frame.size:
-            if (frame[i] == 0):
+            if frame[i] == 0:
                 count += 1
             else:
                 array = np.append(array, [count, frame[i]])
@@ -113,10 +112,10 @@ class Encoder:
             if ret:
                 B = 8  # blocksize
                 img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                h, w = np.array(img1.shape[:2]) / B * B
+                array = np.array(img1.shape[:2])
+                h,w=array/ B * B
                 h = int(h)
                 w = int(w)
-                img1 = img1[:h, :w]
                 blocksV = int(h / B)
                 blocksH = int(w / B)
                 vis0 = np.zeros((h, w), np.float32)
@@ -125,8 +124,7 @@ class Encoder:
                 # dct on each 8*8 block
                 for row in range(blocksV):
                     for col in range(blocksH):
-                        currentblock = cv2.dct(vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
-                        Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = currentblock
+                        Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = cv2.dct(vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
 
                 #quantize numbers with shift 6 bit to right
                 Trans = self.quantization(Trans,6)
@@ -139,7 +137,7 @@ class Encoder:
                 Trans = Trans.flatten()
                 #append width height and number of frame to last of array
                 Trans = numpy.append(Trans,[w,h,currentframe])
-                Trans = Trans.astype(int)
+                Trans = Trans.astype('int32')
                 encoded_file = open("./coded_frames/encoded_video"+str(currentframe)+".txt", "w+")
                 Trans = " ".join(map(str, Trans))
                 encoded_file.write(Trans)

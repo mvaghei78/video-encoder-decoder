@@ -7,22 +7,14 @@ from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
 class Decoder:
-    def __init__(self, videopath):
-        # Read the video from specified path
-        self.video = cv2.VideoCapture(videopath)
-        ret, frame = self.video.read()
-
-        self.height, self.width, self.nchannels = frame.shape
-        fps = 25
-        self.fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-        self.dct_out = cv2.VideoWriter('dct_output.avi', self.fourcc, fps, (self.width, self.height), 0)
-        try:
-            # creating a folder named dct
-            if not os.path.exists('dct'):
-                os.makedirs('dct')
-        # if not created then raise error
-        except OSError:
-            print('Error: Creating directory of dct')
+    frams=[]
+    def __init__(self, directory_path):
+        names= [name for name in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, name))]
+        for name in names:
+            file1=open(os.path.join(directory_path, name))
+            frame=[int(x) for x in file1.readline().split(" ")]
+            self.frams.append(frame)
+            self.decode()
 
     def endCapture(self):
         # Release all space and windows once done
@@ -31,21 +23,34 @@ class Decoder:
         cv2.destroyAllWindows()
 
     def decode(self):
-        pass
-
+        for frame in self.frams:
+            properties=frame[-3:]
+            frame=frame[:-3]
+            frame=np.array(frame)
+            frame=self.runLengthScanReverse(frame)
+            frame.reshape((int(properties[0]*properties[1]/3600),3600))
     def zigzagScanReverse(self):
-        # بعد از عکس runlength نوبت عکس zigzag هست
         pass
 
-    def runLengthScanReverse(self):
-        # اول عکس run length اعمال میشه
-        pass
+    def runLengthScanReverse(self,frame):
+        counter=0
+        new_frame=[]
+        for i,row in enumerate(frame):
+            if i%2==0:
+                counter =row
+            if i%2 ==1:
+                new_frame.extend(np.zeros(counter))
+                new_frame.append(row)
+        return np.array(new_frame)
+
+
+
 
     def quantizationReverse(self):
-        # بعد از عکس اسکن ها نوبت عکس quantization هست
+
         pass
 
     def DCTReverse(self):
-        # در نهایت عکس dct اعمال میشه که خود dct رو تو encoder من داخل متد encode پیاده کردم
-        #و براش متد جدا در نظر نگرفتم.
+
         pass
+decoder=Decoder("./coded_frames")
