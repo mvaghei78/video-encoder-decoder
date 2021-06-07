@@ -2,6 +2,7 @@
 import cv2
 import os
 import numpy as np
+import matplotlib as plt
 from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
@@ -27,14 +28,14 @@ class Decoder:
         new_frames=[]
         for frame in self.frams:
             properties=frame[-3:]
-            frame=frame[:-3]
-            frame=np.array(frame)
-            frame=self.runLengthScanReverse(frame)
-            frame=frame.reshape((int(properties[0]*properties[1]/(self.block_size * self.block_size)),self.block_size *self.block_size))
-            frame=self.zigzag_scan_reverse(properties,frame,self.block_size)
-            frame=self.quantization_reverse(frame,2)
-            self.DCTReverse(frame)
-            new_frames.append(self.zigzag_scan_reverse(properties,frame,self.block_size))
+            x=frame[:-3]
+            x=np.array(x)
+            x=self.runLengthScanReverse(x)
+            x=x.reshape((int(properties[0]*properties[1]/(self.block_size * self.block_size)),self.block_size *self.block_size))
+            x=self.zigzag_scan_reverse(properties,x,self.block_size)
+            x=self.quantization_reverse(x,2)
+            x=self.DCTReverse(x,f"frame{properties[2]}")
+            new_frames.append(x)
 
 
     def zig_zag_index(self, k, n):
@@ -106,7 +107,8 @@ class Decoder:
             for col in range(blocksH):
                 Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = cv2.idct(
                     vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
-        cv2.imshow('Live', Trans)
-        cv2.waitKey(0)
-
+        Trans=np.array(Trans,np.int)
+        filename="out/"+frame_name+".jpg"
+        cv2.imwrite(filename, Trans)
+        return Trans
 decoder=Decoder("./coded_frames")
