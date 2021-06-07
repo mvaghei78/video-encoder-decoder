@@ -32,7 +32,7 @@ class Decoder:
             frame=self.runLengthScanReverse(frame)
             frame=frame.reshape((int(properties[0]*properties[1]/(self.block_size * self.block_size)),self.block_size *self.block_size))
             frame=self.zigzag_scan_reverse(properties,frame,self.block_size)
-            # frame=self.quantization_reverse(frame,2)
+            frame=self.quantization_reverse(frame,2)
             self.DCTReverse(frame)
             new_frames.append(self.zigzag_scan_reverse(properties,frame,self.block_size))
 
@@ -54,14 +54,14 @@ class Decoder:
             M[x, y]=frame[k]
         return M
     def zigzag_scan_reverse(self,properties,frame,block_size):
-        new_frame=np.zeros((properties[0],properties[1]))
+        new_frame=np.zeros((properties[1],properties[0]))
         i=0
         j=0
         for row in frame:
             block =self.zigzag_60_60(row,block_size)
             new_frame[i:i + block_size,j:j + block_size]=block
             j+=block_size
-            if j>=properties[1]-1:
+            if j>=properties[0]-1:
                 j=0
                 i+=block_size
         return new_frame
