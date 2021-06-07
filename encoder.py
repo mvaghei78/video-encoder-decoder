@@ -126,7 +126,7 @@ class Encoder:
                         Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = cv2.dct(vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
 
                 # quantize numbers with shift 6 bit to right
-                Trans = self.quantization(Trans,6)
+                # Trans = self.quantization(Trans,2)
                 # zigzag on each 60*60 block
                 Trans = self.zigzagScan(Trans, 60)
                 # run-length all over frame
