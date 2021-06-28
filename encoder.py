@@ -126,7 +126,7 @@ class Encoder:
                         Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = cv2.dct(vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
 
                 # quantize numbers with shift 6 bit to right
-                Trans = self.quantization(Trans,2)
+                Trans = self.quantization(Trans,6)
                 # zigzag on each 60*60 block
                 Trans = self.zigzagScan(Trans, 60)
                 # run-length all over frame
@@ -155,6 +155,27 @@ class Encoder:
                 break
 
 
-obj = Encoder("sample.mp4")
-obj.encode()
-obj.endCapture()
+def create_coded_file(directory_path):
+    names = [name for name in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, name))]
+    new_frame=[]
+    for name in names:
+        file1 = open(os.path.join(directory_path, name))
+        frame = [int(x) for x in file1.readline().split(" ")]
+        properties = frame[-3:]
+        x = frame[:-3]
+        new_frame.extend(properties)
+        new_frame.append(len(x))
+        new_frame.extend(x)
+    encoded_file = open("./coded_frames/encoded_video.txt", "w+")
+    Trans = " ".join(map(str,new_frame))
+    encoded_file.write(Trans)
+    encoded_file.close()
+
+
+
+
+
+# obj = Encoder("sample.mp4")
+# obj.encode()
+# obj.endCapture()
+create_coded_file("./coded_frames")

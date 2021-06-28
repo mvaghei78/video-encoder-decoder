@@ -9,14 +9,28 @@ import matplotlib.cm as cm
 
 class Decoder:
     frams=[]
+    def get_frames_from_encoded_file(self,directory_path,name):
+        file=open(os.path.join(directory_path, name))
+        all_frames=[int(x) for x in file.readline().split(" ")]
+        end=all_frames[3]+4
+        start=0
+        while end<len(all_frames):
+            frame=all_frames[start:end]
+            new_frame=frame[4:end]
+            new_frame.extend(frame[:3])
+            start=end
+            end=all_frames[end+3]+4+end
+            print(all_frames[start])
+            self.frams.append(new_frame)
     def __init__(self, directory_path):
         self.block_size=60
-        names= [name for name in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, name))]
-        for name in names:
-            file1=open(os.path.join(directory_path, name))
-            frame=[int(x) for x in file1.readline().split(" ")]
-            self.frams.append(frame)
-            self.decode()
+        # names= [name for name in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, name))]
+        # for name in names:
+        #     file1=open(os.path.join(directory_path, name))
+        #     frame=[int(x) for x in file1.readline().split(" ")]
+        #     self.frams.append(frame)
+        self.get_frames_from_encoded_file(directory_path,"encoded_video.txt")
+        self.decode()
 
     def endCapture(self):
         # Release all space and windows once done
@@ -33,8 +47,9 @@ class Decoder:
             x=self.runLengthScanReverse(x)
             x=x.reshape((int(properties[0]*properties[1]/(self.block_size * self.block_size)),self.block_size *self.block_size))
             x=self.zigzag_scan_reverse(properties,x,self.block_size)
-            x=self.quantization_reverse(x,2)
+            x=self.quantization_reverse(x,6)
             x=self.DCTReverse(x,f"frame{properties[2]}")
+            print (f"frame{properties[2]}")
             new_frames.append(x)
 
 
