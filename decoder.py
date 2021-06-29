@@ -12,14 +12,14 @@ class Decoder:
     def get_frames_from_encoded_file(self,directory_path,name):
         file=open(os.path.join(directory_path, name))
         all_frames=[int(x) for x in file.readline().split(" ")]
-        end=all_frames[3]+4
+        end=all_frames[4]+5
         start=0
         while end<len(all_frames):
             frame=all_frames[start:end]
-            new_frame=frame[4:end]
-            new_frame.extend(frame[:3])
+            new_frame=frame[5:end]
+            new_frame.extend(frame[:4])
             start=end
-            end=all_frames[end+3]+4+end
+            end=all_frames[end+4]+5+end
             print(all_frames[start])
             self.frams.append(new_frame)
     def __init__(self, directory_path):
@@ -34,15 +34,22 @@ class Decoder:
 
     def endCapture(self):
         # Release all space and windows once done
-        self.dct_out.release()
-        self.video.release()
+        self.decoder_output.release()
         cv2.destroyAllWindows()
 
+    def differenceReverse(self,current_frame,prev_frame):
+        current_frame = current_frame.astype('int16')
+        for i in range(current_frame.shape[0]):
+            array1 = np.array(current_frame[i])
+            array2 = np.array(prev_frame[i])
+            current_frame[i] = np.add(array1, array2)
+        return current_frame
     def decode(self):
         new_frames=[]
+        prev_frame = []
         for frame in self.frams:
-            properties=frame[-3:]
-            x=frame[:-3]
+            properties=frame[-4:]
+            x=frame[:-4]
             x=np.array(x)
             x=self.runLengthScanReverse(x)
             x=x.reshape((int(properties[0]*properties[1]/(self.block_size * self.block_size)),self.block_size *self.block_size))
@@ -50,8 +57,30 @@ class Decoder:
             x=self.quantization_reverse(x,6)
             x=self.DCTReverse(x,f"frame{properties[2]}")
             print (f"frame{properties[2]}")
+            if properties[3] == 1:
+                x = self.differenceReverse(x,prev_frame)
+            prev_frame = x
             new_frames.append(x)
+            frame_name = f"frame{properties[2]}"
+            filename = "out/"+ frame_name + ".jpg"
+            cv2.imwrite(filename, x)
 
+        self.createDecodedVideo(len(new_frames))
+
+    def createDecodedVideo(self, numberOfFrames):
+        fps = 25
+        self.width = 960
+        self.height = 540
+        self.fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+        self.decoder_output = cv2.VideoWriter('decoder_output.avi', self.fourcc, fps, (self.width, self.height), 0)
+        for i in range(numberOfFrames):
+            img = cv2.imread("./out/frame" + str(i) + ".jpg", cv2.IMREAD_GRAYSCALE)
+            self.decoder_output.write(img)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        self.endCapture()
 
     def zig_zag_index(self, k, n):
         # upper side of interval
@@ -123,7 +152,8 @@ class Decoder:
                 Trans[row * B:(row + 1) * B, col * B:(col + 1) * B] = cv2.idct(
                     vis0[row * B:(row + 1) * B, col * B:(col + 1) * B])
         Trans=np.array(Trans,np.int)
-        filename="out/"+frame_name+".jpg"
-        cv2.imwrite(filename, Trans)
+        # filename="out/"+frame_name+".jpg"
+        # cv2.imwrite(filename, Trans)
         return Trans
 decoder=Decoder("./coded_frames")
+# decoder=Decoder("./")

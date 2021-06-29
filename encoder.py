@@ -2,18 +2,12 @@
 import cv2
 import os
 import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.colors import Normalize
-import matplotlib.cm as cm
-import sys
 import numpy
-import json
-# numpy.set_printoptions(threshold=sys.maxsize)
 
 class Encoder:
-    def __init__(self, videopath):
+    def __init__(self, video_path):
         # Read the video from specified path
-        self.video = cv2.VideoCapture(videopath)
+        self.video = cv2.VideoCapture(video_path)
         try:
             # creating a folder named coded_frames
             if not os.path.exists('coded_frames'):
@@ -24,7 +18,6 @@ class Encoder:
 
     def endCapture(self):
         # Release all space and windows once done
-        # self.dct_out.release()
         self.video.release()
         cv2.destroyAllWindows()
 
@@ -54,7 +47,7 @@ class Encoder:
         return (j, i - j) if i & 1 else (i - j, j)
 
     def zigzag_60_60(self, frame, block_size):
-        M = np.zeros((block_size * block_size), dtype=float)
+        M = np.zeros((block_size * block_size), dtype='int32')
         for k in range(block_size * block_size):
             (x, y) = self.zig_zag_index(k, block_size)
             M[k] = frame[x, y]
@@ -66,7 +59,7 @@ class Encoder:
         frame_height = frame.shape[0]
         frame_total_size = frame_width * frame_height
         zigzaged_frame = np.zeros((int(frame_total_size / (block_size * block_size)), block_size * block_size),
-                                  dtype=float)
+                                  dtype='int32')
         # how many 60*60 blocks in rows and columns
         block_in_column = int(frame_width / block_size)
         block_in_row = int(frame_height / block_size)
@@ -77,7 +70,7 @@ class Encoder:
                 slice_frame = frame[row * block_size:(row + 1) * block_size,
                               column * block_size:(column + 1) * block_size]
                 # zigzag on 60*60 slice_frame
-                zigzaged_frame[index] = self.zigzag_60_60(slice_frame, 60)
+                zigzaged_frame[index] = self.zigzag_60_60(slice_frame, block_size)
                 index += 1
 
         return zigzaged_frame
@@ -102,15 +95,34 @@ class Encoder:
         array = array.reshape(int(array.size/2),2)
         return array
 
+    def difference(self,current_frame,prev_frame):
+        current_frame = current_frame.astype('int8')
+        for i in range(current_frame.shape[0]):
+            array1 = np.array(current_frame[i])
+            array2 = np.array(prev_frame[i])
+            current_frame[i] = np.subtract(array1, array2)
+        return current_frame
+
     def encode(self):
         B = 8  # block size
         currentframe = 0
+        all_coded_frames = []
+        previous_frame = 0
+        frame_type = 0 # 0 -> I , 1 -> P
         while (True):
             # reading from frame
             ret, frame = self.video.read()
             if ret:
+                if currentframe % 6 == 0:
+                    frame_type = 0
+                else:
+                    frame_type = 1
+
                 B = 8  # block size
                 img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                img1_copy = img1
+                if frame_type == 1:
+                    img1 = self.difference(img1,previous_frame)
                 array = np.array(img1.shape[:2])
                 h, w = array / B * B
                 h = int(h)
@@ -134,48 +146,40 @@ class Encoder:
                 # output of run-length is 2d numpy array that tell how many zeros are before
                 # non-zero numbers
                 Trans = Trans.flatten()
-                # append width height and number of frame to last of array
-                Trans = numpy.append(Trans,[w,h,currentframe])
                 Trans = Trans.astype('int32')
+                # append width height and number of frame to last of array
+                all_coded_frames.extend(make_frame_array(frame_type, Trans, [w, h, currentframe]))
+                Trans = make_frame_array(frame_type, Trans, [w, h, currentframe])
                 encoded_file = open("./coded_frames/encoded_video"+str(currentframe)+".txt", "w+")
                 Trans = " ".join(map(str, Trans))
                 encoded_file.write(Trans)
                 encoded_file.close()
                 print("./coded_frames/encoded_video" + str(currentframe) + ".txt" + " created...")
-                # name = './dct/frame' + str(currentframe) + '.jpg'
-                # cv2.imwrite(name, Trans)
+
                 currentframe += 1
-                # save gray fram in output video file
-                # self.dct_out.write(Trans)
-                # Display the resulting frame
-                # cv2.imshow('Live', Trans)
+                print("frame"+str(currentframe)+" coded...")
+                previous_frame = img1_copy
+
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             else:
                 break
 
+        encoded_file = open("./coded_frames/encoded_video.txt", "w+")
+        all_coded_frames = numpy.array(all_coded_frames, dtype='int32')
+        # all_coded_frames.astype('int16').tofile(encoded_file)
+        all_coded_frames = " ".join(map(str, all_coded_frames))
+        encoded_file.write(all_coded_frames)
+        encoded_file.close()
 
-def create_coded_file(directory_path):
-    names = [name for name in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, name))]
-    new_frame=[]
-    for name in names:
-        file1 = open(os.path.join(directory_path, name))
-        frame = [int(x) for x in file1.readline().split(" ")]
-        properties = frame[-3:]
-        x = frame[:-3]
-        new_frame.extend(properties)
-        new_frame.append(len(x))
-        new_frame.extend(x)
-    encoded_file = open("./coded_frames/encoded_video.txt", "w+")
-    Trans = " ".join(map(str,new_frame))
-    encoded_file.write(Trans)
-    encoded_file.close()
+def make_frame_array(frame_type,Trans,array):
+    frame = []
+    frame.extend(array)
+    frame.append(frame_type)
+    frame.append(len(Trans))
+    frame.extend(Trans)
+    return frame
 
-
-
-
-
-# obj = Encoder("sample.mp4")
-# obj.encode()
-# obj.endCapture()
-create_coded_file("./coded_frames")
+obj = Encoder("a.avi")
+obj.encode()
+obj.endCapture()

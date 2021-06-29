@@ -4,3 +4,7 @@ venv
 dct
 dct_output.avi
 grayscale_output.avi
+colored_coded_frames
+colored_out
+color_decoder.py
+color_encoder.py
