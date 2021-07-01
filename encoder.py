@@ -4,6 +4,9 @@ import os
 import numpy as np
 import numpy
 
+from hafman import Huffman
+
+
 class Encoder:
     def __init__(self, video_path):
         # Read the video from specified path
@@ -171,6 +174,8 @@ class Encoder:
         all_coded_frames = " ".join(map(str, all_coded_frames))
         encoded_file.write(all_coded_frames)
         encoded_file.close()
+        huffman=Huffman("./coded_frames/encoded_video.txt")
+        huffman.encode()
 
 def make_frame_array(frame_type,Trans,array):
     frame = []

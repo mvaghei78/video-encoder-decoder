@@ -94,11 +94,7 @@ class Huffman:
 
     @staticmethod
     def write_binary_file(address, output):
-        if len(output) % 8 != 0:
-            m = ""
-            for i in range(8 - (len(output) % 8)):
-                m = m + "0"
-            output = m + output
+
         bit_strings = [output[i:i + 8] for i in range(0, len(output), 8)]
 
         # then convert to integers
@@ -125,9 +121,9 @@ class Huffman:
             data = json.load(json_file)
             return [(v, k) for k, v in data.items()]
 
-huffman=Huffman("coded_frames/huffman_coded.txt","coded_frames/tree.txt")
-x=huffman.decode()
-print ("a")
+# huffman=Huffman("coded_frames/huffman_coded.txt","coded_frames/tree.txt")
+# x=huffman.decode()
+# print ("a")
 # codes = {}
 # input_string = open(os.path.join("coded_frames", "encoded_video.txt")).readline()
 #

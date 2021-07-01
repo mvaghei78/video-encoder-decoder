@@ -7,11 +7,23 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
+from hafman import Huffman
+
+
 class Decoder:
     frams=[]
-    def get_frames_from_encoded_file(self,directory_path,name):
-        file=open(os.path.join(directory_path, name))
-        all_frames=[int(x) for x in file.readline().split(" ")]
+    def get_frames_from_encoded_file(self,name=None,directory_path=None):
+        if directory_path is not None:
+            string_input=open(os.path.join(directory_path, name)).readline()
+        else:
+            huffman=Huffman("coded_frames/huffman_coded.txt","coded_frames/tree.txt")
+            string_input=huffman.decode()
+        all_frames=[]
+        for x in string_input.split(' '):
+            try:
+                all_frames.append(int(x))
+            except:
+                pass
         end=all_frames[4]+5
         start=0
         while end<len(all_frames):
@@ -22,14 +34,10 @@ class Decoder:
             end=all_frames[end+4]+5+end
             print(all_frames[start])
             self.frams.append(new_frame)
-    def __init__(self, directory_path):
+    def __init__(self, directory_path=None):
         self.block_size=60
-        # names= [name for name in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, name))]
-        # for name in names:
-        #     file1=open(os.path.join(directory_path, name))
-        #     frame=[int(x) for x in file1.readline().split(" ")]
-        #     self.frams.append(frame)
-        self.get_frames_from_encoded_file(directory_path,"encoded_video.txt")
+
+        self.get_frames_from_encoded_file()
         self.decode()
 
     def endCapture(self):
@@ -155,5 +163,5 @@ class Decoder:
         # filename="out/"+frame_name+".jpg"
         # cv2.imwrite(filename, Trans)
         return Trans
-decoder=Decoder("./coded_frames")
+decoder=Decoder()
 # decoder=Decoder("./")
