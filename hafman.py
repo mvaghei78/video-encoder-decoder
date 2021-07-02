@@ -1,17 +1,16 @@
 import json
-import os
-
 
 class Huffman:
 
-    def __init__(self, address,tree_address=None):
+    def __init__(self, binary_coded_address=None, tree_address=None, coded_string=None):
         self.codes = {}
         if tree_address is None:
-            self.string_input=open("coded_frames/encoded_video.txt").readline()
+            self.string_input = coded_string
+            # self.string_input=open("coded_frames/encoded_video.txt").readline()
             freqs = self.frequency(self.string_input)
             self.tuples = self.sort_freq(freqs)
         else:
-            self.encoded_output=self.read_binary_file(address)
+            self.encoded_output=self.read_binary_file(binary_coded_address)
             self.tuples=self.read_json(tree_address)
         tree=self.build_tree(self.tuples)
         self.trim=self.trim_tree(tree)
@@ -59,13 +58,13 @@ class Huffman:
             self.assign_codes(node[0], pat + "0")  # Branch point. Do the left branch
             self.assign_codes(node[1], pat + "1")  # then do the right branch.
 
-    def encode(self):
+    def encode(self, haffman_coded_address="coded_frames/huffman_coded.txt", tree_file_address="coded_frames/tree.txt"):
         self.assign_codes(self.trim)
-        str=self.string_input
+        str = self.string_input
         output = ""
         for ch in str: output += self.codes[ch]
-        self.write_binary_file("coded_frames/huffman_coded.txt",output)
-        self.write_tuple_to_json(self.tuples)
+        self.write_binary_file(haffman_coded_address, output)
+        self.write_tuple_to_json(self.tuples,tree_file_address)
 
     def decode(self):
         tree=self.trim
@@ -105,11 +104,11 @@ class Huffman:
             binary_file.close()
 
     @classmethod
-    def write_tuple_to_json(cls,input_tuple):
+    def write_tuple_to_json(cls,input_tuple,tree_file_address="coded_frames/tree.txt"):
         json_out = {}
         for row in input_tuple:
             json_out[row[1]] = row[0]
-        cls.save_json(json_out,"coded_frames/tree.txt")
+        cls.save_json(json_out,tree_file_address)
     @staticmethod
     def save_json(dict,address):
 
@@ -123,6 +122,8 @@ class Huffman:
 
 # huffman=Huffman("coded_frames/huffman_coded.txt","coded_frames/tree.txt")
 # x=huffman.decode()
+# huffman=Huffman("./coded_frames/encoded_video.txt")
+# huffman.encode()
 # print ("a")
 # codes = {}
 # input_string = open(os.path.join("coded_frames", "encoded_video.txt")).readline()

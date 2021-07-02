@@ -9,6 +9,7 @@ import matplotlib.cm as cm
 class GrayScale:
     def __init__(self, videopath):
         # Read the video from specified path
+        self.videopath = videopath
         self.video = cv2.VideoCapture(videopath)
         ret, frame = self.video.read()
         self.height, self.width, self.nchannels = frame.shape
@@ -25,6 +26,7 @@ class GrayScale:
 
     def extractImages(self):
         currentframe = 0
+        self.video = cv2.VideoCapture(self.videopath)
         while (True):
             # reading from frame
             ret, frame = self.video.read()

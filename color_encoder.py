@@ -131,11 +131,15 @@ class Encoder:
                     frame_type = 1
 
                 B = 8  # block size
-                img1 = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                img1 = numpy.array(frame)
+                img1_shape = img1.shape
+                img1 = img1.reshape(img1_shape[0], img1_shape[1] * img1_shape[2])
                 img1_copy = img1
                 if frame_type == 1:
                     img1 = self.difference(img1,previous_frame)
+
                 array = np.array(img1.shape[:2])
+
                 h, w = array / B * B
                 h = int(h)
                 w = int(w)
@@ -162,12 +166,13 @@ class Encoder:
                 # append width height and number of frame to last of array
                 all_coded_frames.extend(self.make_frame_array(frame_type, Trans, [w, h, currentframe]))
                 Trans = self.make_frame_array(frame_type, Trans, [w, h, currentframe])
-                encoded_file = open("./coded_frames/encoded_video"+str(currentframe)+".txt", "w+")
+                encoded_file = open("./colored_coded_frames/encoded_video"+str(currentframe)+".txt", "w+")
                 Trans = " ".join(map(str, Trans))
                 encoded_file.write(Trans)
                 encoded_file.close()
-                print("./coded_frames/encoded_video" + str(currentframe) + ".txt" + " created...")
-
+                print("./colored_coded_frames/encoded_video" + str(currentframe) + ".txt" + " created...")
+                # if currentframe == 5:
+                #     break
                 currentframe += 1
                 print("frame"+str(currentframe)+" coded...")
                 previous_frame = img1_copy
@@ -176,14 +181,14 @@ class Encoder:
             else:
                 break
 
-        encoded_file = open("./coded_frames/encoded_video.txt", "w+")
+        encoded_file = open("./colored_coded_frames/encoded_video.txt", "w+")
         all_coded_frames = numpy.array(all_coded_frames, dtype='int32')
         all_coded_frames = " ".join(map(str, all_coded_frames))
         encoded_file.write(all_coded_frames)
         encoded_file.close()
-        #now convert coded string to huffman code -> save in ./coded_frames/huffman_coded.txt
+        #now convert coded string to huffman code -> save in ./colored_coded_frames/huffman_coded.txt
         huffman = Huffman(coded_string=all_coded_frames)
-        huffman.encode()
+        huffman.encode(haffman_coded_address="colored_coded_frames/huffman_coded.txt", tree_file_address="colored_coded_frames/tree.txt")
 
 
 encoder = Encoder("a.avi")

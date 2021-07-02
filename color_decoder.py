@@ -10,7 +10,7 @@ class Decoder:
         if directory_path is not None:
             string_input = open(os.path.join(directory_path, name)).readline()
         else:
-            huffman = Huffman(binary_coded_address="coded_frames/huffman_coded.txt", tree_address="coded_frames/tree.txt")
+            huffman = Huffman(binary_coded_address="colored_coded_frames/huffman_coded.txt", tree_address="colored_coded_frames/tree.txt")
             string_input = huffman.decode()
         all_frames = []
         for x in string_input.split(' '):
@@ -60,23 +60,24 @@ class Decoder:
             x=self.DCTReverse(x) #frame_name=f"frame{properties[2]}"
             print (f"frame{properties[2]}")
             if properties[3] == 1:
-                x = self.differenceReverse(x,prev_frame)
+                x = self.differenceReverse(x, prev_frame)
             prev_frame = x
+            x = x.reshape(x.shape[0], int(x.shape[1] / 3), 3)
+            # x = x.astype('uint8')
             new_frames.append(x)
             frame_name = f"frame{properties[2]}"
-            filename = "out/"+ frame_name + ".jpg"
+            filename = "colored_out/" + frame_name + ".jpg"
             cv2.imwrite(filename, x)
-
         self.createDecodedVideo(len(new_frames))
 
     def createDecodedVideo(self, numberOfFrames):
-        fps = 20
+        fps = 25
         self.width = 960
         self.height = 540
         self.fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-        self.decoder_output = cv2.VideoWriter('decoder_output.avi', self.fourcc, fps, (self.width, self.height), 0)
+        self.decoder_output = cv2.VideoWriter('decoder_colored_output.avi',self.fourcc, fps, (self.width, self.height), True)
         for i in range(numberOfFrames):
-            img = cv2.imread("./out/frame" + str(i) + ".jpg", cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread("./colored_out/frame" + str(i) + ".jpg", cv2.IMREAD_COLOR)
             self.decoder_output.write(img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
