@@ -4,15 +4,15 @@ import os
 import numpy as np
 import numpy
 from hafman import Huffman
-
+from encoder import check_arguments
 class Encoder:
     def __init__(self, video_path):
         # Read the video from specified path
         self.video = cv2.VideoCapture(video_path)
         try:
             # creating a folder named coded_frames
-            if not os.path.exists('coded_frames'):
-                os.makedirs('coded_frames')
+            if not os.path.exists('colored_coded_frames'):
+                os.makedirs('colored_coded_frames')
         # if not created then raise error
         except OSError:
             print('Error: Creating directory of coded_frames')
@@ -181,14 +181,16 @@ class Encoder:
             else:
                 break
 
-        encoded_file = open("./colored_coded_frames/encoded_video.txt", "w+")
+        # encoded_file = open("./colored_coded_frames/encoded_video.txt", "w+")
         all_coded_frames = numpy.array(all_coded_frames, dtype='int32')
         all_coded_frames = " ".join(map(str, all_coded_frames))
-        encoded_file.write(all_coded_frames)
-        encoded_file.close()
+        # encoded_file.write(all_coded_frames)
+        # encoded_file.close()
         #now convert coded string to huffman code -> save in ./colored_coded_frames/huffman_coded.txt
         huffman = Huffman(coded_string=all_coded_frames)
         huffman.encode(haffman_coded_address="colored_coded_frames/huffman_coded.txt", tree_file_address="colored_coded_frames/tree.txt")
 
-
-encoder = Encoder("a.avi")
+if __name__ == "__main__":
+    video_path = check_arguments()
+    if video_path:
+        encoder = Encoder(video_path)

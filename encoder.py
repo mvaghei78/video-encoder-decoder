@@ -4,6 +4,7 @@ import os
 import numpy as np
 import numpy
 from hafman import Huffman
+import argparse
 
 class Encoder:
     def __init__(self, video_path):
@@ -176,14 +177,30 @@ class Encoder:
             else:
                 break
 
-        encoded_file = open("./coded_frames/encoded_video.txt", "w+")
+        # encoded_file = open("./coded_frames/encoded_video.txt", "w+")
         all_coded_frames = numpy.array(all_coded_frames, dtype='int32')
         all_coded_frames = " ".join(map(str, all_coded_frames))
-        encoded_file.write(all_coded_frames)
-        encoded_file.close()
+        # encoded_file.write(all_coded_frames)
+        # encoded_file.close()
         #now convert coded string to huffman code -> save in ./coded_frames/huffman_coded.txt
         huffman = Huffman(coded_string=all_coded_frames)
         huffman.encode()
 
+def check_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video_path", type=str, help="Enter path of video that you want to encode")
+    args = parser.parse_args()
+    if args.video_path:
+        if os.path.isfile(args.video_path):
+            return args.video_path
+        else:
+            print("Video file does not exist.")
+            return None
+    else:
+        print("Please enter needed arguments and after that try to run the code.")
+        return None
 
-encoder = Encoder("a.avi")
+if __name__ == "__main__":
+    video_path = check_arguments()
+    if video_path:
+        encoder = Encoder(video_path)

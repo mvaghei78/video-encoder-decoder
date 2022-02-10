@@ -1,11 +1,7 @@
 # Importing all necessary libraries
 import cv2
 import os
-import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.colors import Normalize
-import matplotlib.cm as cm
-
+from encoder import check_arguments
 class GrayScale:
     def __init__(self, videopath):
         # Read the video from specified path
@@ -61,6 +57,9 @@ class GrayScale:
         self.video.release()
         cv2.destroyAllWindows()
 
-obj = GrayScale("sample.mp4")
-obj.extractImages()
-obj.endCapture()
+if __name__ == "__main__":
+    video_path = check_arguments()
+    if video_path:
+        obj = GrayScale(video_path)
+        obj.extractImages()
+        obj.endCapture()

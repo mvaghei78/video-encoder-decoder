@@ -6,6 +6,13 @@ from hafman import Huffman
 
 class Decoder:
     frams=[]
+
+    def __init__(self):
+        self.block_size=60
+        self.get_frames_from_encoded_file()
+        self.decode()
+        self.endCapture()
+
     def get_frames_from_encoded_file(self,name=None,directory_path=None):
         if directory_path is not None:
             string_input = open(os.path.join(directory_path, name)).readline()
@@ -28,11 +35,6 @@ class Decoder:
             end=all_frames[end+4]+5+end
             print(all_frames[start])
             self.frams.append(new_frame)
-    def __init__(self):
-        self.block_size=60
-        self.get_frames_from_encoded_file()
-        self.decode()
-        self.endCapture()
 
     def endCapture(self):
         # Release all space and windows once done
@@ -154,4 +156,5 @@ class Decoder:
         Trans=np.array(Trans,np.int)
         return Trans
 
-decoder = Decoder()
+if __name__ == "__main__":
+    decoder = Decoder()
