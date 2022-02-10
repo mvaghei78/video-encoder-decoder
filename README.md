@@ -1,4 +1,4 @@
-# multimedia Encoder Decoder
+# Video Encoder Decoder
 
 in this project we implemented video encoder and video decoder.
 
